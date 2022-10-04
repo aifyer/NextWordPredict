@@ -1,0 +1,66 @@
+---
+title: "Next Word Prediction"
+author: "Hongfei Liu"
+date: '2022-10-03'
+output:
+  powerpoint_presentation: default
+  beamer_presentation: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,eval=F)
+```
+
+## The "Prediction of Next Word" app
+
+ - Here I built an app to predict the next word when gaven a previous phrase (multiple words). The link to the app is: https://aifyer.shinyapps.io/wordPredict/
+ - On the left panel of the app page, the text box under the header "Please enter your phrases here!" is where to input your phrase (leaving the last word out).
+ - After input the phrase, press Submit! button and wait. The average time I wait is 12 seconds.
+ - Then, on the right panel, under the header "Your next word might be:", you will see the next word predicted.
+
+
+## The Algorithm -Get the copora and split to single words
+
+ - To make the prediction, all text samples from twitter/blogs/news were read in as the studying copora.
+ - First, each text sample was split to single sentences by punctuations "[\\.]|[!]|[?]|[,]|[;]". 
+ - Then each sentence was split to words by "[^[:alpha:]'’]". Here "'’" was included to keep phrases like I'm/we’ve. 
+ - Sometimes the words were surrounded by apostrophe like 'hello', which will make it a totally different word from hello, and these kind of apostrophes were removed. 
+some critical codes for these steps were shown here:
+```{r code1}
+a=unlist(strsplit(t,split="[\\.]|[!]|[?]|[,]|[;]")) #split to sentences
+a=unlist(strsplit(t,split="[^[:alpha:]'’]")) #split sentence to words
+a=gsub("^['’]|['’]$","",a) #remove unwanted '’
+```
+
+## The Algorithm -Calculating single word, Bigram and Trigram probability
+ - Bigram and Trigram were got by paste each word with its following one or two words in every sentence.
+ - Single word (Unigram),Bigram and Trigram probability was calculated separately by the following formulas. Here w is every word. C is its counts in the copora. N: total words in the copora. V: words in vocabulary.
+$$
+P(w_i)=(Cw_i+1)/(N+V) # Unigram
+P(w_i|w_{i-1}))=(C(w_{i-1},w_i)+1)/(C(w_{i-1})+V) # Bigram
+P(w_i|w_{i-1},w_{i-2}))=(C(w_{i-2},w_{i-1},w_i)+1)/(C(w_{i-2},w_{i-1})+V) # Trigram
+$$
+
+## The Algorithm -Bigram and Trigram probability and Prediction
+
+I use the Bigram & Trigram statistic probability to predict next word.The predict word is the word with highest Trigram or Bigram (if input phrase contains only one word. or Trigram has no output) probability.
+In the results, stopword from package(tm) and letters were removed.
+
+some key codes for these steps were:
+```{r code2}
+v2Fm$Ptwo<-(v2Fm$Freq.y+1)/(v2Fm$Freq.x+nrow(v1F)) #calculate bigram probability
+v3Fm$Ptri<-(v3Fm$gram3Freq+1)/(v3Fm$gram2Freq+nrow(v1F)) #calculate trigram probability
+regex <- paste0("\\s*\\b(", paste(wordsToRemove, collapse="|"), ")\\b") #get word to remove expression
+```
+
+Thanks for trying! And hope you find my app useful!
+
+
+
+
+
+
+
+
+
+
